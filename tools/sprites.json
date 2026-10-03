@@ -1,0 +1,539 @@
+{
+ "_style": "Cute stylized low-poly 3D game asset, flat shading, soft pastel colours, clean simple shapes, viewed from a high three-quarter top-down angle like the strategy game Thronefall. Single subject, centered, full body visible, no ground, no shadow, no text, no border. Plain solid pure white background.",
+ "cat_leader": {
+  "size": 34,
+  "prompt": "a brave orange tabby cat KING standing upright, wearing a big shiny golden crown with red and blue gems and a royal red cape with white fur trim, holding a little scepter topped with a ball of yarn"
+ },
+ "cat_follower_1": {
+  "size": 26,
+  "prompt": "a small grey tabby cat warrior standing upright holding a tiny wooden sword"
+ },
+ "cat_follower_2": {
+  "size": 26,
+  "prompt": "a small black cat warrior standing upright holding a little round wooden shield"
+ },
+ "cat_follower_3": {
+  "size": 26,
+  "prompt": "a small white cat warrior standing upright holding a short spear"
+ },
+ "cat_follower_4": {
+  "size": 26,
+  "prompt": "a small calico cat warrior standing upright holding a tiny axe"
+ },
+ "b_castle": {
+  "size": 110,
+  "prompt": "a cute stone castle keep with round turrets whose roofs look like pointed cat ears, blue banners with a golden paw print"
+ },
+ "b_castle_A": {
+  "size": 110,
+  "prompt": "a cute stone castle keep with round turrets whose roofs look like pointed cat ears, blue banners with a golden paw print; upgraded into a \"Royal Keep\": 1300 HP, fires twin arrows"
+ },
+ "b_castle_B": {
+  "size": 110,
+  "prompt": "a cute stone castle keep with round turrets whose roofs look like pointed cat ears, blue banners with a golden paw print; upgraded into a \"Royal Treasury\": +3 gold per morning, 900 HP"
+ },
+ "b_castle_C": {
+  "size": 110,
+  "prompt": "a cute stone castle keep with round turrets whose roofs look like pointed cat ears, blue banners with a golden paw print; upgraded into a \"Throne Room\": King +75% HP, +50% damage. Castle 1000 HP"
+ },
+ "b_house": {
+  "size": 48,
+  "prompt": "a tiny cozy cottage with a roof shaped like cat ears and a round window with a cat face peeking out"
+ },
+ "b_house_A": {
+  "size": 48,
+  "prompt": "a tiny cozy cottage with a roof shaped like cat ears and a round window with a cat face peeking out; upgraded into a \"Cottage\": +2 gold per morning"
+ },
+ "b_house_B": {
+  "size": 48,
+  "prompt": "a tiny cozy cottage with a roof shaped like cat ears and a round window with a cat face peeking out; upgraded into a \"Watch House\": 120 HP, shoots arrows"
+ },
+ "b_house_C": {
+  "size": 48,
+  "prompt": "a tiny cozy cottage with a roof shaped like cat ears and a round window with a cat face peeking out; upgraded into a \"Cat Caf\u00e9\": +1 gold, heals cats nearby (3 HP/s)"
+ },
+ "b_tower": {
+  "size": 54,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures"
+ },
+ "b_tower_A": {
+  "size": 54,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Archer Loft\": Faster arrows, longer reach, no figures"
+ },
+ "b_tower_A1": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Longbow Nest\" (Archer Loft branch): 32 dmg shots, huge range, 20% crits, no figures"
+ },
+ "b_tower_A2": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Volley Roost\" (Archer Loft branch): Fires 3 arrows at once, no figures"
+ },
+ "b_tower_A3": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Hunter's Perch\" (Archer Loft branch): x3.5 vs flyers, can hit burrowed Drill Bots, no figures"
+ },
+ "b_tower_B": {
+  "size": 54,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Mystic Spire\": Magic bolts ignore armour, no figures"
+ },
+ "b_tower_B1": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Storm Coil\" (Mystic Spire branch): Lightning chains to 4 robots, no figures"
+ },
+ "b_tower_B2": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Frost Lantern\" (Mystic Spire branch): Freezing splash slows robots 50%, no figures"
+ },
+ "b_tower_B3": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Hex Totem\" (Mystic Spire branch): Hexed robots take +40% damage from everything, no figures"
+ },
+ "b_tower_C": {
+  "size": 54,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Catapult Roost\": Lobbed boulders with splash, no figures"
+ },
+ "b_tower_C1": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Big Purrtha\" (Catapult Roost branch): Huge shells: 34 dmg, wide splash, no figures"
+ },
+ "b_tower_C2": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Yarn Bomber\" (Catapult Roost branch): Sticky yarn leaves slowing, burning pools, no figures"
+ },
+ "b_tower_C3": {
+  "size": 60,
+  "prompt": "a defensive watchtower for a cat archer with an EMPTY flat platform on top, no figures; upgraded into a \"Siege Ballista\" (Catapult Roost branch): Piercing 70 dmg bolts, x2 vs siege, no figures"
+ },
+ "b_farm": {
+  "size": 46,
+  "prompt": "a small square patch of catnip crops"
+ },
+ "b_farm_A": {
+  "size": 46,
+  "prompt": "a small square patch of catnip crops; upgraded into a \"Catnip Field\": +2 gold"
+ },
+ "b_farm_B": {
+  "size": 46,
+  "prompt": "a small square patch of catnip crops; upgraded into a \"Scarecrow Field\": A scarecrow shoots flyers. 60 HP"
+ },
+ "b_farm_C": {
+  "size": 46,
+  "prompt": "a small square patch of catnip crops; upgraded into a \"Feed Farm\": +1 gold, all units +8% HP"
+ },
+ "b_melee": {
+  "size": 62,
+  "prompt": "a small military barracks tent with blue stripes and a rack of tiny swords for cat knights"
+ },
+ "b_melee_A": {
+  "size": 62,
+  "prompt": "a small military barracks tent with blue stripes and a rack of tiny swords for cat knights; upgraded into a \"Guardians\": Tough knights: 120 HP"
+ },
+ "b_melee_B": {
+  "size": 62,
+  "prompt": "a small military barracks tent with blue stripes and a rack of tiny swords for cat knights; upgraded into a \"Duelists\": Quick blades: 6 dmg, fast"
+ },
+ "b_melee_C": {
+  "size": 62,
+  "prompt": "a small military barracks tent with blue stripes and a rack of tiny swords for cat knights; upgraded into a \"Lancers\": Long reach, x2 damage vs fast robots"
+ },
+ "b_ranged": {
+  "size": 58,
+  "prompt": "a small wooden archery range hut with a round straw target"
+ },
+ "b_ranged_A": {
+  "size": 58,
+  "prompt": "a small wooden archery range hut with a round straw target; upgraded into a \"Marksmen\": 7 dmg, range 170"
+ },
+ "b_ranged_B": {
+  "size": 58,
+  "prompt": "a small wooden archery range hut with a round straw target; upgraded into a \"Apprentice Mages\": Magic splash bolts"
+ },
+ "b_ranged_C": {
+  "size": 58,
+  "prompt": "a small wooden archery range hut with a round straw target; upgraded into a \"Skirmishers\": +2 slingers, quick shots"
+ },
+ "b_clinic": {
+  "size": 58,
+  "prompt": "a small white cat clinic hut with a green cross and a cat-ear roof"
+ },
+ "b_clinic_A": {
+  "size": 58,
+  "prompt": "a small white cat clinic hut with a green cross and a cat-ear roof; upgraded into a \"Field Medics\": Medics follow the King and heal 6"
+ },
+ "b_clinic_B": {
+  "size": 58,
+  "prompt": "a small white cat clinic hut with a green cross and a cat-ear roof; upgraded into a \"Menders\": Nurses repair buildings (8 HP)"
+ },
+ "b_clinic_C": {
+  "size": 58,
+  "prompt": "a small white cat clinic hut with a green cross and a cat-ear roof; upgraded into a \"Herbalists\": Healing aura near the castle (3 HP/s)"
+ },
+ "b_mine": {
+  "size": 64,
+  "prompt": "a rocky hill with a timber-framed mine entrance and a little mine cart of gold"
+ },
+ "b_mine_A": {
+  "size": 64,
+  "prompt": "a rocky hill with a timber-framed mine entrance and a little mine cart of gold; upgraded into a \"Gold Vein\": +6 gold per morning"
+ },
+ "b_mine_B": {
+  "size": 64,
+  "prompt": "a rocky hill with a timber-framed mine entrance and a little mine cart of gold; upgraded into a \"Forge Tunnels\": All units +20% damage"
+ },
+ "b_mine_C": {
+  "size": 64,
+  "prompt": "a rocky hill with a timber-framed mine entrance and a little mine cart of gold; upgraded into a \"Crystal Cavern\": +3 gold, all units +10% damage"
+ },
+ "b_dock": {
+  "size": 66,
+  "prompt": "a small wooden fishing pier on the water with a tiny boat and a harpoon launcher"
+ },
+ "b_dock_A": {
+  "size": 66,
+  "prompt": "a small wooden fishing pier on the water with a tiny boat and a harpoon launcher; upgraded into a \"Fishing Wharf\": +4 gold per morning"
+ },
+ "b_dock_B": {
+  "size": 66,
+  "prompt": "a small wooden fishing pier on the water with a tiny boat and a harpoon launcher; upgraded into a \"Harbour Battery\": Cannon: 16 dmg splash, range 190"
+ },
+ "b_dock_C": {
+  "size": 66,
+  "prompt": "a small wooden fishing pier on the water with a tiny boat and a harpoon launcher; upgraded into a \"Lighthouse\": +2 gold. Its light slows robots 25%"
+ },
+ "b_post": {
+  "size": 54,
+  "prompt": "a tall cat scratching post made of sisal rope on a wooden base with a dangling yarn ball"
+ },
+ "b_post_A": {
+  "size": 54,
+  "prompt": "a tall cat scratching post made of sisal rope on a wooden base with a dangling yarn ball; upgraded into a \"Claw Training\": Auto-attack becomes a claw swipe (14 dmg, short range)"
+ },
+ "b_post_B": {
+  "size": 54,
+  "prompt": "a tall cat scratching post made of sisal rope on a wooden base with a dangling yarn ball; upgraded into a \"Yarn Slinger\": Faster, longer yarn throws"
+ },
+ "b_post_C": {
+  "size": 54,
+  "prompt": "a tall cat scratching post made of sisal rope on a wooden base with a dangling yarn ball; upgraded into a \"Hairball Magic\": Homing magic hairballs with splash"
+ },
+ "b_gym": {
+  "size": 58,
+  "prompt": "a wooden cat climbing frame / jungle gym with platforms and a hoop for pouncing practice"
+ },
+ "b_gym_A": {
+  "size": 58,
+  "prompt": "a wooden cat climbing frame / jungle gym with platforms and a hoop for pouncing practice; upgraded into a \"Power Pounce\": Landing hits 40 dmg in a 55 radius"
+ },
+ "b_gym_B": {
+  "size": 58,
+  "prompt": "a wooden cat climbing frame / jungle gym with platforms and a hoop for pouncing practice; upgraded into a \"Zoomies\": Long 150 dash, 3s cooldown, hits everything on the path"
+ },
+ "b_gym_C": {
+  "size": 58,
+  "prompt": "a wooden cat climbing frame / jungle gym with platforms and a hoop for pouncing practice; upgraded into a \"Tail Swipe\": After dashing the King gets a 40 HP shield"
+ },
+ "b_den": {
+  "size": 56,
+  "prompt": "a cosy round cat den hut with cat ears on top and cushions inside"
+ },
+ "b_den_A": {
+  "size": 56,
+  "prompt": "a cosy round cat den hut with cat ears on top and cushions inside; upgraded into a \"Warband\": +2 squad cats"
+ },
+ "b_den_B": {
+  "size": 56,
+  "prompt": "a cosy round cat den hut with cat ears on top and cushions inside; upgraded into a \"Archer Kittens\": Squad shoots arrows (range 110)"
+ },
+ "b_den_C": {
+  "size": 56,
+  "prompt": "a cosy round cat den hut with cat ears on top and cushions inside; upgraded into a \"Elite Guard\": Squad x2 HP, x1.5 damage"
+ },
+ "b_library": {
+  "size": 66,
+  "prompt": "a grand little library building with columns and a dome, books stacked by the door"
+ },
+ "b_library_A": {
+  "size": 66,
+  "prompt": "a grand little library building with columns and a dome, books stacked by the door; upgraded into a \"School of War\": All units and towers +15% damage"
+ },
+ "b_library_B": {
+  "size": 66,
+  "prompt": "a grand little library building with columns and a dome, books stacked by the door; upgraded into a \"School of Coin\": +3 gold per morning"
+ },
+ "b_library_C": {
+  "size": 66,
+  "prompt": "a grand little library building with columns and a dome, books stacked by the door; upgraded into a \"School of Magic\": All robots move 10% slower"
+ },
+ "tcat_base": {
+  "size": 24,
+  "prompt": "upper body of a ginger cat archer with a bow, leaning over a ledge"
+ },
+ "tcat_A": {
+  "size": 24,
+  "prompt": "upper body of a grey cat archer in a round steel helmet with a bow, leaning over a ledge"
+ },
+ "tcat_A1": {
+  "size": 24,
+  "prompt": "upper body of a black cat sharpshooter with a feathered cap and very long longbow, leaning over a ledge"
+ },
+ "tcat_A2": {
+  "size": 24,
+  "prompt": "upper body of a white cat archer drawing three arrows at once, leaning over a ledge"
+ },
+ "tcat_A3": {
+  "size": 24,
+  "prompt": "upper body of a brown cat hunter in a green hood aiming at the sky, leaning over a ledge"
+ },
+ "tcat_B": {
+  "size": 24,
+  "prompt": "upper body of a grey cat wizard in a purple pointy hat holding a staff, leaning over a ledge"
+ },
+ "tcat_B1": {
+  "size": 24,
+  "prompt": "upper body of a black cat storm wizard in a blue hat with lightning sparks, leaning over a ledge"
+ },
+ "tcat_B2": {
+  "size": 24,
+  "prompt": "upper body of a white cat frost mage in an icy blue hat, leaning over a ledge"
+ },
+ "tcat_B3": {
+  "size": 24,
+  "prompt": "upper body of a black cat witch in a magenta hat casting a hex, leaning over a ledge"
+ },
+ "tcat_C": {
+  "size": 24,
+  "prompt": "upper body of an orange cat engineer in a leather helmet holding a small catapult lever, leaning over a ledge"
+ },
+ "tcat_C1": {
+  "size": 24,
+  "prompt": "upper body of a brown cat gunner beside a big round mortar, leaning over a ledge"
+ },
+ "tcat_C2": {
+  "size": 24,
+  "prompt": "upper body of a calico cat with goggles holding a sticky yarn bomb, leaning over a ledge"
+ },
+ "tcat_C3": {
+  "size": 24,
+  "prompt": "upper body of an orange cat with goggles aiming a big ballista, leaning over a ledge"
+ },
+ "u_melee": {
+  "size": 26,
+  "prompt": "a chubby cat knight in steel armour with a sword, standing upright"
+ },
+ "u_melee_A": {
+  "size": 26,
+  "prompt": "a cat guardian in heavy plate armour with a big shield, standing upright"
+ },
+ "u_melee_B": {
+  "size": 26,
+  "prompt": "a nimble black cat duelist with a rapier, standing upright"
+ },
+ "u_melee_C": {
+  "size": 26,
+  "prompt": "a grey cat lancer with a long spear and helmet, standing upright"
+ },
+ "u_ranged": {
+  "size": 26,
+  "prompt": "a slim siamese cat archer with a green hood and a longbow, standing upright"
+ },
+ "u_ranged_A": {
+  "size": 26,
+  "prompt": "a cat marksman with a crossbow and feathered cap, standing upright"
+ },
+ "u_ranged_B": {
+  "size": 26,
+  "prompt": "a young cat wizard apprentice in a purple pointy hat with a wand, standing upright"
+ },
+ "u_ranged_C": {
+  "size": 26,
+  "prompt": "a calico cat slinger with a leather sling, standing upright"
+ },
+ "u_clinic": {
+  "size": 26,
+  "prompt": "a white nurse cat with a green cross on her apron holding a healing wand, standing upright"
+ },
+ "u_clinic_A": {
+  "size": 26,
+  "prompt": "a field medic cat with a red-cross satchel, standing upright"
+ },
+ "u_clinic_B": {
+  "size": 26,
+  "prompt": "a builder cat with a hammer and a toolbelt, standing upright"
+ },
+ "u_clinic_C": {
+  "size": 26,
+  "prompt": "a herbalist druid cat in a green pointy hat with a leafy staff, standing upright"
+ },
+ "u_militia": {
+  "size": 24,
+  "prompt": "a grey cat militia guard with a spear and a leather cap, standing upright"
+ },
+ "r_scrap": {
+  "size": 22,
+  "prompt": "a tiny rusty tin-can robot on two stubby legs with one dim yellow eye, flimsy and weak"
+ },
+ "r_tintot": {
+  "size": 22,
+  "prompt": "a tiny dented brass toy robot holding a small wrench, clockwork key on its back"
+ },
+ "r_blade": {
+  "size": 28,
+  "prompt": "a grey humanoid robot soldier with a circular saw blade for one arm, red visor eye"
+ },
+ "r_laser": {
+  "size": 28,
+  "prompt": "a thin tall white robot with a long laser rifle arm and a glowing red lens eye"
+ },
+ "r_prong": {
+  "size": 30,
+  "prompt": "a robot holding a long electric pitchfork crackling with blue sparks, yellow and black body"
+ },
+ "r_spin": {
+  "size": 30,
+  "prompt": "a round robot with two spinning ball-and-chain arms, orange body"
+ },
+ "r_railgun": {
+  "size": 32,
+  "prompt": "a heavy navy blue robot with a large glowing blue railgun cannon on its shoulder"
+ },
+ "r_barrel": {
+  "size": 34,
+  "prompt": "a robot made from a steel oil drum barrel with plated armour and stubby arms"
+ },
+ "r_shadow": {
+  "size": 34,
+  "prompt": "a sleek black and purple ninja robot with glowing violet eyes and twin energy blades"
+ },
+ "r_brute": {
+  "size": 46,
+  "prompt": "a huge hulking heavy robot with massive fists and yellow and black hazard stripes"
+ },
+ "r_tesla": {
+  "size": 30,
+  "prompt": "a hovering flying robot made of a copper tesla coil with crackling electric arcs, small propellers"
+ },
+ "r_roller": {
+  "size": 26,
+  "prompt": "a spherical ball robot rolling fast with a single glowing green eye stripe"
+ },
+ "r_hound": {
+  "size": 30,
+  "prompt": "a four legged robot dog hound with glowing red eyes and sharp metal jaws"
+ },
+ "r_bike": {
+  "size": 32,
+  "prompt": "a robot riding a one-wheeled monowheel motorcycle"
+ },
+ "r_drone": {
+  "size": 26,
+  "prompt": "a small flying quadcopter drone robot with four rotors and a stinger, yellow and black"
+ },
+ "r_jet": {
+  "size": 30,
+  "prompt": "a small fast red delta-wing jet drone robot"
+ },
+ "r_blimp": {
+  "size": 48,
+  "prompt": "a slow flying robot blimp airship with a big bomb cannon hanging underneath, grey and red"
+ },
+ "r_boom": {
+  "size": 28,
+  "prompt": "a round black bomb robot with little legs and a lit sparking fuse on top"
+ },
+ "r_snail": {
+  "size": 28,
+  "prompt": "a slow robot snail with a red explosive canister for a shell and little tank treads"
+ },
+ "r_blob": {
+  "size": 18,
+  "prompt": "a small blob of shiny grey nanobot goo with two dot eyes"
+ },
+ "r_spikeblob": {
+  "size": 26,
+  "prompt": "a blob of shiny grey nanobot goo covered with metal spikes, angry eyes"
+ },
+ "r_turretblob": {
+  "size": 26,
+  "prompt": "a blob of shiny grey nanobot goo with a long neck ending in a little laser turret"
+ },
+ "r_heavyturret": {
+  "size": 34,
+  "prompt": "a large blob of dark chrome nanobot goo with a long neck ending in a double barrel turret"
+ },
+ "r_spiderS": {
+  "size": 20,
+  "prompt": "a tiny six legged spider robot, silver, single red eye"
+ },
+ "r_spiderM": {
+  "size": 30,
+  "prompt": "a medium eight legged spider robot, gunmetal, cluster of red eyes"
+ },
+ "r_spiderL": {
+  "size": 64,
+  "prompt": "a giant menacing eight legged spider mech robot, black and red, many glowing eyes"
+ },
+ "r_drill": {
+  "size": 30,
+  "prompt": "a burrowing mole robot with a big spinning drill nose and digging claws"
+ },
+ "r_drillgun": {
+  "size": 30,
+  "prompt": "a burrowing mole robot with a drill nose and a small gun on its back"
+ },
+ "r_glitch": {
+  "size": 32,
+  "prompt": "a translucent glitchy holographic robot ghost, cyan and magenta, flickering"
+ },
+ "r_smash": {
+  "size": 50,
+  "prompt": "a big bulky mech robot with two giant hydraulic hammer arms"
+ },
+ "r_minigun": {
+  "size": 32,
+  "prompt": "a squat robot with a large spinning gatling minigun arm, olive green"
+ },
+ "r_monolith": {
+  "size": 70,
+  "prompt": "a towering black monolith robot with a glowing white core and many small arms"
+ },
+ "r_mortar": {
+  "size": 40,
+  "prompt": "a robot mortar cannon on four short legs lobbing shells, brown and khaki"
+ },
+ "r_ram": {
+  "size": 46,
+  "prompt": "a heavy armoured robot truck with a giant piston battering ram in front"
+ },
+ "r_saw": {
+  "size": 40,
+  "prompt": "a giant rolling buzzsaw wheel robot with a tiny cockpit in the hub"
+ },
+ "r_walker": {
+  "size": 56,
+  "prompt": "a tall two legged walking robot siege tower with gun turrets on top"
+ },
+ "r_barge": {
+  "size": 58,
+  "prompt": "a hovering robot barge boat with a big crossbow cannon on deck, steel grey"
+ },
+ "r_megavac": {
+  "size": 120,
+  "prompt": "a gigantic menacing robot vacuum cleaner boss with a huge suction nozzle, red glowing eyes and spiky armour, purple and black"
+ },
+ "b_mill": {
+  "size": 66,
+  "prompt": "a cute windmill with a round stone base and four sails, roof shaped like cat ears"
+ },
+ "b_mill_A": {
+  "size": 66,
+  "prompt": "a cute windmill with a round stone base and four sails, roof shaped like cat ears; upgraded into an \"Improved Plow\" mill with golden grain sacks stacked by the door"
+ },
+ "b_mill_B": {
+  "size": 66,
+  "prompt": "a cute windmill with a round stone base and four sails, roof shaped like cat ears; upgraded into an \"Explosive Trap\" mill with dark stone walls and a powder keg marked with a warning sign"
+ },
+ "b_mill_C": {
+  "size": 66,
+  "prompt": "a cute windmill with a round stone base and four sails, roof shaped like cat ears; upgraded into a \"Wind Spirits\" mill with pale blue roof and swirling magical wind wisps around the sails"
+ }
+}
