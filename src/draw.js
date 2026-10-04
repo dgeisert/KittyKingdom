@@ -202,6 +202,8 @@ function drawEnemy(e) {
   const d = e.def;
   if (e.burrowed) { ell(ctx, e.x, e.y, 9, 4, '#8a6a4a'); ell(ctx, e.x - 3, e.y - 2, 3, 2, '#a07d5a'); return; }
   if (!d.fly) shadow(ctx, e.x, e.y, e.r); else ell(ctx, e.x, e.y + 4, e.r * 0.8, e.r * 0.3, 'rgba(30,40,60,0.15)');
+  // thin red enemy ring at the robot's feet (the King has a gold one)
+  ctx.save(); ctx.lineWidth = 1.5; const rr = e.r * (d.fly ? 0.8 : 1) + 3; ell(ctx, e.x, e.y + (d.fly ? 4 : 0), rr, rr * 0.42, 'rgba(255,30,45,0.14)', 'rgba(255,40,55,0.85)'); ctx.restore();
   const bob = d.fly ? Math.sin(e.t * 5) * 2 : (Math.abs(Math.sin(e.t * 10)) * -1.2);
   drawRobot(ctx, e.type, e.x, e.y, { t: e.stunT > 0 ? 0 : e.t, flip: e.flip, elite: e.elite, bob, flash: e.hurtT > 0 ? 0.7 : 0, squash: d.fly ? 0 : Math.sin(e.t * 10) * 0.03 });
   if (e.slowT > 0 || e.auraSlowShow) ell(ctx, e.x, e.y - 2, e.r + 2, (e.r + 2) * 0.4, null, '#9cf');
@@ -256,7 +258,7 @@ function drawNight() {
   dctx.setTransform(1, 0, 0, 1, 0, 0);
   dctx.globalCompositeOperation = 'source-over';
   dctx.clearRect(0, 0, W, H);
-  dctx.fillStyle = 'rgba(14,20,58,' + (0.55 * a) + ')'; dctx.fillRect(0, 0, W, H);
+  dctx.fillStyle = 'rgba(14,20,58,' + (0.275 * a) + ')'; dctx.fillRect(0, 0, W, H);
   dctx.setTransform(0.5, 0, 0, 0.5, -cx * 0.5, -cy * 0.5);
   dctx.globalCompositeOperation = 'destination-out';
   const hole = (x, y, r, s) => { if (x < cx - r || x > cx + W + r || y < cy - r || y > cy + H + r) return; const g = dctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(0,0,0,' + s + ')'); g.addColorStop(1, 'rgba(0,0,0,0)'); dctx.fillStyle = g; dctx.fillRect(x - r, y - r, r * 2, r * 2); };
@@ -264,6 +266,30 @@ function drawNight() {
   if (!G.leader.dead) hole(G.leader.x, G.leader.y - 14, 90, 0.85);
   for (const pl of G.pools) hole(pl.x, pl.y, pl.r * 2, 0.7);
   ctx.drawImage(DARK, cx, cy, W, H);
+}
+
+// ---------- tutorial arrows ----------
+function goldArrow(x, y, ang, s) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(s, s);
+  ctx.shadowColor = 'rgba(255,200,60,0.8)'; ctx.shadowBlur = 8;
+  poly(ctx, [[0, 0], [-11, -12], [-4.5, -12], [-4.5, -24], [4.5, -24], [4.5, -12], [11, -12]], '#ffd34d', '#7a5410', 2);
+  ctx.shadowBlur = 0;
+  poly(ctx, [[0, -4], [-6, -10.5], [-2.5, -10.5], [-2.5, -21], [-0.5, -21], [-0.5, -10.5]], 'rgba(255,255,220,0.7)');
+  ctx.restore();
+}
+function drawTutorialArrows() {
+  const st = tutStep(); if (!st) return;
+  const L = G.leader;
+  const tg = tutTargets(st).sort((a, b) => Math.hypot(a.x - L.x, a.y - L.y) - Math.hypot(b.x - L.x, b.y - L.y)).slice(0, 2);
+  const bounce = Math.abs(Math.sin(G.t * 4.5)) * 10;
+  for (const t of tg) {
+    const sx = t.x - G.cam.x, sy = t.y - t.off - G.cam.y;
+    if (sx > 16 && sx < W - 16 && sy > 60 && sy < H - 10) goldArrow(sx, sy - bounce, 0, 1);   // tip points down at the spot
+    else {
+      const ex = clamp(sx, 26, W - 26), ey = clamp(sy, 76, H - 26), a = Math.atan2(sy - ey, sx - ex);
+      goldArrow(ex + Math.cos(a) * bounce * 0.6, ey + Math.sin(a) * bounce * 0.6, a - Math.PI / 2, 0.8);
+    }
+  }
 }
 
 // ---------- speech bubbles (never covering robots or the King) ----------
@@ -471,6 +497,24 @@ function drawOffscreen() {
   }
 }
 
+// ---------- help button (top right): reopens the controls overlay ----------
+const HELP_BTN = { x: W - 42, y: 8, w: 34, h: 34 };
+let mouse = { x: -1, y: -1 };
+function helpBtnShown() { return G.phase !== 'title'; }
+function overHelpBtn(x, y) { const b = HELP_BTN; return x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h; }
+function drawHelpButton() {
+  if (!helpBtnShown()) return;
+  const b = HELP_BTN, hov = overHelpBtn(mouse.x, mouse.y) || G.help;
+  ctx.save(); ctx.lineWidth = 1.5;
+  rrect(ctx, b.x, b.y, b.w, b.h, 10, hov ? 'rgba(60,66,100,0.9)' : 'rgba(25,30,50,0.75)', hov ? '#ffe9a8' : 'rgba(255,233,168,0.45)');
+  // mini keycap with a question mark
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  rrect(ctx, cx - 10, cy - 8, 20, 19, 4, '#9a8f7a'); rrect(ctx, cx - 10, cy - 10, 20, 18, 4, hov ? '#ffe9a8' : '#fbf6ea', '#6b5f4a');
+  ctx.fillStyle = '#3a3226'; ctx.font = 'bold 14px "Trebuchet MS", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('?', cx, cy + 4); ctx.textAlign = 'left';
+  ctx.restore();
+}
+function toggleHelp(on) { G.help = on == null ? !G.help : on; for (const k in keys) keys[k] = false; }
+
 function drawHUD() {
   rrect(ctx, 8, 8, 312, 34, 10, 'rgba(25,30,50,0.75)');
   coin(28, 25, 9);
@@ -482,6 +526,7 @@ function drawHUD() {
   if (G.phase === 'night') ctx.fillText('Robots left: ' + (G.enemies.length + G.spawns.length), 210, 30);
   else ctx.fillText('Castle Lv' + castleTier(), 214, 30);
   const L = G.leader;
+  ctx.save(); ctx.translate(-(HELP_BTN.w + 6), 0);   // King box sits left of the help button
   rrect(ctx, W - 230, 8, 222, 34, 10, 'rgba(25,30,50,0.75)');
   drawCrown(ctx, W - 214, 26, 0.7);
   ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 11px "Trebuchet MS", sans-serif'; ctx.fillText('King Whiskers', W - 202, 22);
@@ -490,6 +535,8 @@ function drawHUD() {
   const squad = G.followers.filter(f => !f.dead).length;
   ctx.fillStyle = '#cfe'; ctx.font = '10px "Trebuchet MS", sans-serif'; ctx.fillText(G.followers.length ? 'Squad ' + squad + '/' + G.followers.length : 'No squad yet', W - 92, 22);
   ctx.fillStyle = L.dashCd > 0 ? '#889' : '#ffe9a8'; ctx.fillText(L.dashCd > 0 ? 'Dash ' + Math.ceil(L.dashCd) + 's' : 'SPACE Dash', W - 92, 35);
+  ctx.restore();
+  drawHelpButton();
   if (G.phase === 'day') {
     const near = G.pads.filter(p => Math.hypot(p.x - L.x, p.y - L.y) < 36).sort((a, b) => Math.hypot(a.x - L.x, a.y - L.y) - Math.hypot(b.x - L.x, b.y - L.y))[0];
     if (near) {
@@ -498,6 +545,11 @@ function drawHUD() {
       rrect(ctx, W / 2 - w / 2, H - 52, w, 42, 10, 'rgba(25,30,50,0.85)');
       ctx.textAlign = 'center'; ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 13px "Trebuchet MS", sans-serif'; ctx.fillText(txt, W / 2, H - 34);
       ctx.fillStyle = near.locked || G.gold < near.cost ? '#ffb0a0' : '#cfe0ff'; ctx.font = '11px "Trebuchet MS", sans-serif'; ctx.fillText(sub, W / 2, H - 18); ctx.textAlign = 'left';
+    } else if (tutStep()) {
+      const txt = tutStep().tip; ctx.font = 'bold 12px "Trebuchet MS", sans-serif'; const w = ctx.measureText(txt).width + 40;
+      rrect(ctx, W / 2 - w / 2, H - 38, w, 28, 9, 'rgba(25,30,50,0.8)', 'rgba(255,211,77,0.6)');
+      ctx.save(); ctx.translate(W / 2 - w / 2 + 16, H - 24); ctx.scale(0.5, 0.5); goldArrow(0, 0, -Math.PI / 2, 1); ctx.restore();
+      ctx.textAlign = 'left'; ctx.fillStyle = '#ffe9a8'; ctx.fillText(txt, W / 2 - w / 2 + 28, H - 20);
     } else if (G.night === 0 && G.t < 50) {
       ctx.textAlign = 'center'; ctx.font = '12px "Trebuchet MS", sans-serif'; rrect(ctx, W / 2 - 250, H - 36, 500, 26, 9, 'rgba(25,30,50,0.7)');
       ctx.fillStyle = '#e8eefc'; ctx.fillText('Move with WASD · stand on glowing spots to build · ring the bell to start the night', W / 2, H - 19); ctx.textAlign = 'left';
@@ -554,6 +606,7 @@ function render() {
   for (const u of G.followers.concat(G.units)) if (!u.dead) hpBar(u.x, u.y - 30, 16, u.hp / u.maxHp, '#7ad3ff');
   if (G.phase === 'day' && Math.hypot(BELL.x - G.leader.x, BELL.y - G.leader.y) < 100) { ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Stand here to start the night', BELL.x, BELL.y + 30); ctx.textAlign = 'left'; }
   ctx.restore();
+  drawTutorialArrows();
   drawPanel();
   drawLanePanel();
   drawResetPanel();
@@ -562,6 +615,7 @@ function render() {
   drawBubbles();
   drawHUD();
   if (G.phase === 'title') drawTitle();
+  if (G.help && G.phase !== 'title') { drawTitle(true); drawHelpButton(); }
   if (G.phase === 'win') drawOverlay('VICTORY!', 'The MEGA-VAC 9000 is scrap. ' + G.stats.kills + ' robots defeated.', ['The cats of the realm will nap safely tonight.', 'Move to play again']);
   if (G.phase === 'lose') drawOverlay(G.loseWhy === 'king' ? 'THE KING FELL' : 'THE CASTLE FELL', 'Night ' + (G.night + 1) + ': ' + NIGHTS[G.night].name, ['The robots took the yarn reserves... but cats have nine lives.', G.save ? 'Move to retry Day ' + (G.save.night + 1) + ' from its start, before you built anything' : 'Move to try again']);
 }
@@ -589,7 +643,7 @@ function rowText(x, y, t1, t2) {
   ctx.fillStyle = '#fff'; ctx.font = 'bold 13px "Trebuchet MS", sans-serif'; ctx.fillText(t1, x, y);
   if (t2) { ctx.fillStyle = '#b8c4e0'; ctx.font = '11px "Trebuchet MS", sans-serif'; ctx.fillText(t2, x, y + 15); }
 }
-function drawTitle() {
+function drawTitle(help) {
   ctx.fillStyle = 'rgba(14,18,40,0.74)'; ctx.fillRect(0, 0, W, H);
   // title
   ctx.textAlign = 'center';
@@ -640,6 +694,13 @@ function drawTitle() {
   rowText(hx + 84, hy, 'Protect the Castle', 'Upgrading it unlocks new buildings. If it falls, the night is lost.');
   // --- footer: save + start prompt
   ctx.textAlign = 'center';
+  if (help) {
+    ctx.fillStyle = '#cfe0ff'; ctx.font = '13px "Trebuchet MS", sans-serif'; ctx.fillText('Game paused. Progress is saved at the start of every day.', W / 2, 508);
+    ctx.fillStyle = '#9fb0d8'; ctx.font = 'italic 11px "Trebuchet MS", sans-serif'; ctx.fillText('To erase all game data, stand on the red RESET GAME spot in the far bottom-right corner of the map.', W / 2, 528);
+    ctx.font = 'bold 18px "Trebuchet MS", sans-serif'; ctx.fillStyle = 'rgba(255,233,168,' + (0.7 + Math.sin(performance.now() / 250) * 0.3) + ')';
+    ctx.fillText('Click anywhere or press Esc to return to the game', W / 2, 566); ctx.textAlign = 'left';
+    return;
+  }
   ctx.fillStyle = '#cfe0ff'; ctx.font = '13px "Trebuchet MS", sans-serif';
   ctx.fillText(G.saved ? 'Your kingdom is saved at Day ' + (G.saved.night + 1) + '.  Hold SPACE for 2 seconds to start a new kingdom instead.' : 'Progress is saved at the start of every day.', W / 2, 508);
   ctx.fillStyle = '#9fb0d8'; ctx.font = 'italic 11px "Trebuchet MS", sans-serif'; ctx.fillText('To erase all game data, stand on the red RESET GAME spot in the far bottom-right corner of the map.', W / 2, 528);
@@ -670,6 +731,17 @@ addEventListener('keydown', e => {
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   if (MOVE_KEYS.includes(e.code) || e.code === 'Enter') { if (G.phase !== 'title' || !(G.newHold > 0)) begin(); }
   if (e.code === 'KeyM') setMuted(!muted);
+  if (G.phase !== 'title' && (e.code === 'KeyH' || e.code === 'Slash')) toggleHelp();
+  else if (G.help && e.code === 'Escape') toggleHelp(false);
+  startMusic();
+});
+function canvasPos(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
+cv.addEventListener('mousemove', e => { mouse = canvasPos(e); cv.style.cursor = helpBtnShown() && overHelpBtn(mouse.x, mouse.y) ? 'pointer' : 'default'; });
+cv.addEventListener('mouseleave', () => { mouse = { x: -1, y: -1 }; });
+cv.addEventListener('mousedown', e => {
+  const m = canvasPos(e);
+  if (G.help) toggleHelp(false);
+  else if (helpBtnShown() && overHelpBtn(m.x, m.y)) toggleHelp(true);
   startMusic();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -679,7 +751,7 @@ let last = performance.now(), acc = 0;
 const STEP = 1 / 60;
 function frame(now) {
   acc += Math.min(0.1, (now - last) / 1000); last = now;
-  if (!G.paused) while (acc >= STEP) { for (let i = 0; i < G.speed; i++) update(STEP); acc -= STEP; }
+  if (!G.paused && !G.help) while (acc >= STEP) { for (let i = 0; i < G.speed; i++) update(STEP); acc -= STEP; }
   else acc = 0;
   render();
   if (G.paused) { ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = '#fff'; ctx.font = 'bold 30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('PAUSED', W / 2, H / 2); ctx.textAlign = 'left'; }

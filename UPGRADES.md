@@ -314,8 +314,8 @@ Kingdom-wide research (+10% tower damage). Costs: build 5, level 2 8, level 3 14
 
 | Branch | Finisher | Effect | Inspired by |
 |---|---|---|---|
-| **A. Improved Plow** | | +1 gold for every farm you own. | Thronefall: Improved Plow |
-| | A1. Golden Plow | +2 gold for every farm. | Bloons TD: Banana Plantation |
+| **A. Improved Plow** | | +1 gold for every farm around this mill. | Thronefall: Improved Plow |
+| | A1. Golden Plow | +2 gold for every farm around this mill. | Bloons TD: Banana Plantation |
 | | A2. Mill Bakery | +1 per farm, +3 gold, all cats +10% HP. | Bloons TD: Banana Research |
 | | A3. Seed Vault | +1 per farm, farms get +200 HP. | PvZ: Pumpkin |
 | **B. Explosive Trap** | | 300 HP. Explodes for 120 dmg if destroyed. | Thronefall: Explosive Trap |

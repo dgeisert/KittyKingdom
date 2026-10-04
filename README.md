@@ -21,6 +21,7 @@ A Thronefall-style tower defense game that runs in a single 960×640 page. You p
 | Space | Dash attack. Every dash style always moves the King |
 | Stand on the bell | Start the night |
 | M | Mute music and sound |
+| H / ? (or click the **?** button, top right) | Show the controls again; the game pauses until you click or press Esc |
 
 ## Music
 The soundtrack is `Paw Patrol Protocol.mp3`, which must stay in the same folder as `index.html`. It plays at a gentle volume, loops and starts on your first key press, because browsers block audio until then. `python3 tools/build.py --embed` also embeds it in `cattower_standalone.html`.
@@ -41,11 +42,11 @@ Every building has four levels. At level 2 you choose 1 of 3 branches, at level 
 | Building | Role | Branches |
 |---|---|---|
 | Cat Castle | Heart of the kingdom; shoots arrows | Royal Keep / Royal Treasury / Throne Room |
-| Cat Tower (×21: 10 near the castle, 5 back-line spots covering the air routes, 6 forward spots near the spawns that unlock at Castle level 2 or 3) | Main defense | Archer Loft / Mystic Spire / Catapult Roost |
+| Cat Tower (×19: 9 near the castle, 4 back-line spots covering the air routes, 6 forward spots near the spawns that unlock at Castle level 2 or 3) | Main defense | Archer Loft / Mystic Spire / Catapult Roost |
 | Wall (×3) | Blocks a road | Stone Wall / Trap Line / Gatehouse |
 | Cat House (×8) | Gold | Cottage / Watch House / Cat Café |
-| Windmill | Gold; required before any farm can be planted | Improved Plow / Explosive Trap / Wind Spirits |
-| Catnip Farm (×5) | Gold, fragile | Catnip Field / Scarecrow Field / Feed Farm |
+| Windmill (×2: west fields, and northern fields at Castle level 2) | Gold; each one unlocks the farms around it, and its per-farm bonus counts only its own farms | Improved Plow / Explosive Trap / Wind Spirits |
+| Catnip Farm (×10, 5 around each windmill) | Gold, fragile | Catnip Field / Scarecrow Field / Feed Farm |
 | Gold Mine (×2) | Gold, or upgrades for your units | Gold Vein / Forge Tunnels / Crystal Cavern |
 | Fishing Dock (×2) | A little defense plus gold | Fishing Wharf / Harbour Battery / Lighthouse |
 | Melee Hall (one per road) | Melee cats | Guardians / Duelists / Lancers |
@@ -57,6 +58,9 @@ Every building has four levels. At level 2 you choose 1 of 3 branches, at level 
 | Grand Library | Kingdom-wide upgrades, then repeatable Kingdom Research | School of War / School of Coin / School of Magic |
 
 ## Interface
+- **Tutorial (Days 1 to 5):** Queen Purrsephone suggests what to build next from the Castle, and bouncing gold arrows point at the suggested spot (at the screen edge if it's off screen). It's only advice, and each day's suggestions fit the gold you'll actually have (Day 2: Castle + Squad Den; Day 3: east tower + 2 houses; Day 4: south wall + south tower + a house; Day 5: Castle upgrade + a tower for drones). Steps are skipped once done or unaffordable, and you can ring the bell at any time.
+- Every robot has a small red chevron on its body and a red ring at its feet, so enemies stand out from your cats.
+- Night darkness is light enough that the whole map stays readable.
 - Walk toward a red spawn banner during the day and a sidebar lists tonight's robots on that route: what each one does, how many are coming, and which are Elite, flying or siege.
 - Building spots stay hidden until the Castle reaches their level. Locked upgrades (and farm spots waiting for a Windmill) show a **padlock**. Their sidebar explains exactly why they're locked and what to do, for example "Needs Castle level 2 (yours is level 1). Walk to the Castle and buy its next upgrade (8 gold)."
 - During the day, the nearest building shows a side panel with only what you can buy there right now: the building itself, or its current upgrade choices. Locked upgrades show which Castle level they need.

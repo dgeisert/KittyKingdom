@@ -38,28 +38,33 @@ const PLOTS = [
   { id:'h4', type:'house', x:450, y:370, req:1 },
   { id:'h5', type:'house', x:440, y:600, req:1 },
   { id:'h6', type:'house', x:665, y:705, req:2 },
-  { id:'h7', type:'house', x:701, y:321, req:2 },
+  { id:'h7', type:'house', x:706, y:329, req:2 },
   { id:'h8', type:'house', x:350, y:510, req:2 },
   { id:'mill', type:'mill', x:295, y:688, req:1 },
   { id:'f1', type:'farm', x:200, y:750, req:1, needs:'mill' },
-  { id:'f2', type:'farm', x:313, y:775, req:1, needs:'mill' },
+  { id:'f2', type:'farm', x:313, y:774, req:1, needs:'mill' },
   { id:'f3', type:'farm', x:405, y:745, req:1, needs:'mill' },
   { id:'f4', type:'farm', x:299, y:850, req:2, needs:'mill' },
   { id:'f5', type:'farm', x:395, y:850, req:2, needs:'mill' },
+  // the northern windmill and its fields, between the houses and the mountains
+  { id:'mill2', type:'mill', x:588, y:241, req:2 },
+  { id:'f6', type:'farm', x:527, y:186, req:2, needs:'mill2' },
+  { id:'f7', type:'farm', x:601, y:155, req:2, needs:'mill2' },
+  { id:'f8', type:'farm', x:680, y:180, req:2, needs:'mill2' },
+  { id:'f9', type:'farm', x:755, y:208, req:2, needs:'mill2' },
+  { id:'f10', type:'farm', x:683, y:257, req:2, needs:'mill2' },
   { id:'tE1', type:'tower', x:1107, y:452, req:1 },
   { id:'tE2', type:'tower', x:1107, y:615, req:1 },
   { id:'tNE1', type:'tower', x:1029, y:195, req:1 },
   { id:'tNE2', type:'tower', x:930, y:292, req:1 },
   { id:'tS1', type:'tower', x:752, y:752, req:1 },
   { id:'tS2', type:'tower', x:970, y:669, req:1 },
-  { id:'tN', type:'tower', x:590, y:250, req:2 },
   { id:'tW', type:'tower', x:349, y:629, req:2 },
   { id:'tC1', type:'tower', x:647, y:416, req:1 },
   // back-line towers to cover the air routes (west sea, northern mountains)
   { id:'tB1', type:'tower', x:215, y:330, req:1 },
   { id:'tB2', type:'tower', x:215, y:580, req:1 },
-  { id:'tB3', type:'tower', x:470, y:230, req:2 },
-  { id:'tB4', type:'tower', x:748, y:213, req:2 },
+  { id:'tB3', type:'tower', x:465, y:234, req:2 },
   { id:'tB5', type:'tower', x:520, y:880, req:2 },
   { id:'tC2', type:'tower', x:830, y:575, req:1 },
   // forward towers out near the spawn points
@@ -76,7 +81,7 @@ const PLOTS = [
   { id:'mE', type:'melee', x:960, y:440, req:1, guard:[1075,530], lane:'E' },
   { id:'rE', type:'ranged', x:1009, y:603, req:2, guard:[1044,568], lane:'E' },
   { id:'mNE', type:'melee', x:870, y:205, req:1, guard:[1010,300], lane:'NE' },
-  { id:'rNE', type:'ranged', x:786, y:282, req:2, guard:[901,312], lane:'NE' },
+  { id:'rNE', type:'ranged', x:787, y:282, req:2, guard:[902,312], lane:'NE' },
   { id:'mS', type:'melee', x:1060, y:735, req:1, guard:[885,712], lane:'S' },
   { id:'rS', type:'ranged', x:640, y:785, req:2, guard:[790,700], lane:'S' },
   { id:'clinic', type:'clinic', x:545, y:545, req:2, guard:[700,600] },
@@ -87,14 +92,14 @@ const PLOTS = [
   { id:'post', type:'post', x:520, y:300, req:2 },
   { id:'gym', type:'gym', x:905, y:620, req:2 },
   { id:'den', type:'den', x:370, y:430, req:1 },
-  { id:'library', type:'library', x:806, y:369, req:2 },
+  { id:'library', type:'library', x:808, y:369, req:2 },
 ];
 const BELL = { x: 612, y: 580 };
 // stand here (bottom-right corner of the map, past the south bridge) to erase all saved data and start over
 const RESET_SPOT = { x: 1385, y: 905 };
 
 const SPEAKERS = { castle:'Queen Purrsephone', mill:'Miller Mungo', mine:'Digger Dot', dock:'Captain Mackerel', clinic:'Nurse Nim', post:'Coach Claws', gym:'Coach Pounce', den:'Den Mother Mittens', library:'Professor Purrcival' };
-const HALL_SPEAKERS = { mE:'Sgt. Socks', mNE:'Sgt. Boots', mS:'Sgt. Tabby', rE:'Robin Hiss', rNE:'Archer Ash', rS:'Maid Mew' };
+const HALL_SPEAKERS = { mill2:'Miller Maisie', mE:'Sgt. Socks', mNE:'Sgt. Boots', mS:'Sgt. Tabby', rE:'Robin Hiss', rNE:'Archer Ash', rS:'Maid Mew' };
 
 // ---------- Enemies (all Thronefall enemy types, as robots) ----------
 // fam: human->'infantry', monster->'critter', siege->'siege'

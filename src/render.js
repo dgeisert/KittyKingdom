@@ -497,9 +497,38 @@ function drawRobot(ctx, type, x, y, o) {
     ctx.translate(x, y);
     if (o.flip) ctx.scale(-1, 1);
     (ROBOT_DRAW[type] || ROBOT_DRAW.scrap)(ctx, o.t || 0);
+    robotMark(ctx, type, o.t || 0);
     if (o.flash) { ctx.globalCompositeOperation = 'source-atop'; }
+  } else {
+    // AI sprite: put the enemy chevron on the middle of its body
+    ctx.save(); ctx.translate(x, y + (def.fly ? -16 : 0) + (o.bob || 0) - size * 0.5); if (o.flip) ctx.scale(-1, 1);
+    redChevron(ctx, 0, 0, Math.max(0.8, size / 34)); ctx.restore();
   }
   ctx.restore();
+}
+// ---------- enemy markings: a small bright-red chevron painted on every robot ----------
+// [x, y, scale, bob] in the robot's local drawing space (feet at 0,0). bob = [amplitude, speed] for hovering bodies
+const ROBOT_MARK = {
+  scrap: [0, -8, 0.8], tintot: [0, -8, 0.8], blade: [0, -12, 1], laser: [0, -13, 0.7], prong: [0, -11, 1], spin: [-2, -10, 1],
+  railgun: [0, -13, 1], barrel: [0, -16.5, 1.1], shadow: [0, -15, 1], brute: [0, -21, 1.6], tesla: [0, -21, 0.7, [2, 4]],
+  roller: [0, -5, 0.9], hound: [-3, -11, 0.9], bike: [0, -20, 0.8], drone: [-0.5, -17.5, 0.7, [2, 6]], jet: [-2, -22, 0.8, [1.5, 6]],
+  blimp: [-6, -41, 1.2, [2, 2]], boom: [-2, -8, 0.9], snail: [-3, -17, 0.9], blob: [0, -3, 0.6], spikeblob: [0, -5, 0.9],
+  turretblob: [0, -5, 0.8], heavyturret: [0, -6, 1.1], spiderS: [0, -3.5, 0.55], spiderM: [0, -6.5, 0.8], spiderL: [0, -21, 1.6],
+  drill: [-3, -10, 0.9], drillgun: [-3, -10, 0.9], glitch: [0, -17, 1], smash: [0, -24, 1.4], minigun: [0, -13, 1],
+  monolith: [0, -20, 1.6], mortar: [6, -12.5, 0.9], ram: [-2, -13, 1.2], saw: [0, -24, 0.8], walker: [0, -36, 1.4],
+  barge: [6, -7, 1.1, [2, 2]], megavac: [0, -27, 2.4, [2, 2]],
+};
+function redChevron(ctx, x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(-3.2, -1.6); ctx.lineTo(0, 1.6); ctx.lineTo(3.2, -1.6);
+  ctx.strokeStyle = 'rgba(20,0,0,0.85)'; ctx.lineWidth = 3.6; ctx.stroke();   // dark edge so it reads on red or yellow bodies
+  ctx.strokeStyle = '#ff1e2d'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+}
+function robotMark(ctx, type, t) {
+  const m = ROBOT_MARK[type] || [0, -10, 1];
+  redChevron(ctx, m[0], m[1] + (m[3] ? Math.sin(t * m[3][1]) * m[3][0] : 0), m[2]);
 }
 
 // ---------- TERRAIN (pre-rendered, whole world) ----------

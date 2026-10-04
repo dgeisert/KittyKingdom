@@ -359,9 +359,9 @@ TREES.mill = {
   name: 'Windmill', icon: 'mill', cost: [3, 4, 8, 14], r: 20,
   base: { hp: 60, income: 1 }, blurb: '+1 gold, and lets you plant Catnip Farms.',
   opts: [
-    { id: 'A', name: 'Improved Plow', from: 'Thronefall: Improved Plow', desc: '+1 gold for every farm you own.', fx: { perFarm: 1 },
+    { id: 'A', name: 'Improved Plow', from: 'Thronefall: Improved Plow', desc: '+1 gold for every farm around this mill.', fx: { perFarm: 1 },
       kids: [
-        { id: 'A1', name: 'Golden Plow', from: 'Bloons TD: Banana Plantation', desc: '+2 gold for every farm.', fx: { perFarm: 2 } },
+        { id: 'A1', name: 'Golden Plow', from: 'Bloons TD: Banana Plantation', desc: '+2 gold for every farm around this mill.', fx: { perFarm: 2 } },
         { id: 'A2', name: 'Mill Bakery', from: 'Bloons TD: Banana Research', desc: '+1 per farm, +3 gold, all cats +10% HP.', fx: { perFarm: 1, income: 4, global: { unitHpMul: 1.1, followerHpMul: 1.1 } } },
         { id: 'A3', name: 'Seed Vault', from: 'PvZ: Pumpkin', desc: '+1 per farm, farms get +200 HP.', fx: { perFarm: 1, global: { farmHpAdd: 200 } } },
       ] },

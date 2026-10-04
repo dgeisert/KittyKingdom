@@ -70,17 +70,17 @@ function newGame() {
     plots: {}, mod: DEF_MOD(), cam: { x: CASTLE.x - W / 2, y: CASTLE.y - H / 2 + 40 },
     leader: null, followers: [], units: [], decoys: [], enemies: [], proj: [], fx: [], pools: [], bubbles: [], bubbleQ: [],
     spawns: [], nightT: 0, seen: {}, hold: { key: null, p: 0, done: false }, pads: [], panel: null,
-    chatT: 8, nightChatT: 8, castleHitT: 0, lowHpT: 0, msg: null, stats: { kills: 0 }, bounty: 0, nextId: 1, dmgLog: {},
+    chatT: 8, nightChatT: 8, tut: { idx: -1, t: 0, nag: 0 }, help: false, castleHitT: 0, lowHpT: 0, msg: null, stats: { kills: 0 }, bounty: 0, nextId: 1, dmgLog: {},
   };
   const names = { house: ['Old Tom', 'Biscuit', 'Mochi', 'Pepper', 'Noodle', 'Luna', 'Ziggy', 'Waffles'], tower: ['Scout Nibbles', 'Pip', 'Marmalade', 'Clawdia', 'Sir Paws', 'Bean', 'Hazelnut', 'Dot'], farm: ['Farmer Butterbean', 'Farmer Clover', 'Farmer Sprout', 'Farmer Hay', 'Farmer Fig'] };
   const cnt = {};
   for (const d of PLOTS) {
     const p = { ...d, built: false, path: [], s: null, hp: 0, maxHp: 0, alive: true, cd: rand(0, 1), auraT: 0, kind: 'building', r: TREES[d.type].r };
     cnt[d.type] = (cnt[d.type] || 0) + 1;
-    p.speaker = SPEAKERS[d.type] || HALL_SPEAKERS[d.id] || (names[d.type] ? names[d.type][(cnt[d.type] - 1) % names[d.type].length] : null);
+    p.speaker = HALL_SPEAKERS[d.id] || SPEAKERS[d.type] || (names[d.type] ? names[d.type][(cnt[d.type] - 1) % names[d.type].length] : null);
     G.plots[d.id] = p;
   }
-  G.leader = { kind: 'leader', x: CASTLE.x, y: CASTLE.y + 70, r: 9, hp: 100, maxHp: 100, cd: 0, dead: 0, flip: false, moving: false, dashCd: 0, dash: null, slowT: 0, target: null, hurtT: 0, shield: 0, invulnT: 0, swipes: 0, rallyT: 0 };
+  G.leader = { kind: 'leader', x: CASTLE.x, y: CASTLE.y + 95, r: 9, hp: 100, maxHp: 100, cd: 0, dead: 0, flip: false, moving: false, dashCd: 0, dash: null, slowT: 0, target: null, hurtT: 0, shield: 0, invulnT: 0, swipes: 0, rallyT: 0 };
   // the castle starts as rubble: only the bell stands until the King earns enough to rebuild it
 }
 function plots() { return Object.values(G.plots); }
@@ -102,7 +102,7 @@ function castleHow(need) {
 // why an empty building spot can't be built yet (null = it can)
 function plotLock(p) {
   if (p.req > castleTier()) return { title: TREES[p.type].name + ' is locked', lines: castleHow(p.req) };
-  if (p.needs && !(G.plots[p.needs] && G.plots[p.needs].built)) return { title: 'Catnip Farm is locked', lines: ['Farms need a Windmill to grind the catnip.', 'Build the Windmill first (west of the castle, beside the fields).'] };
+  if (p.needs && !(G.plots[p.needs] && G.plots[p.needs].built)) return { title: 'Catnip Farm is locked', lines: ['Farms need a Windmill to grind the catnip.', p.needs === 'mill2' ? 'Build the northern Windmill first (in the middle of these fields).' : 'Build the Windmill first (west of the castle, beside the fields).'] };
   return null;
 }
 
@@ -342,7 +342,7 @@ function restoreDay(snap) {
   for (const u of G.units.concat(G.followers)) u.hp = u.maxHp;
   G.night = snap.night; G.gold = snap.gold; G.seen = { ...snap.seen }; G.stats.kills = snap.kills || 0; G.bounty = snap.bounty || 0;
   G.phase = 'day'; G.t = 60; G.save = snap;
-  G.leader.x = CASTLE.x; G.leader.y = CASTLE.y + 70;
+  G.leader.x = CASTLE.x; G.leader.y = CASTLE.y + 95;
   G.msg = { text: 'Day ' + (G.night + 1) + ' — try again!', t: 0 };
   G.hintT = 2;
 }
@@ -379,7 +379,9 @@ function spawnEnemy(s) {
 function dawnIncome() {
   const houses = plots().filter(p => p.built && p.type === 'house').length, towers = plots().filter(p => p.built && p.type === 'tower').length, farms = plots().filter(p => p.built && p.type === 'farm').length;
   let inc = 0;
-  for (const p of plots()) if (p.built && p.alive) inc += (p.s.income || 0) + (p.s.perHouse || 0) * houses + (p.s.perTower || 0) * towers + (p.s.perFarm || 0) * farms;
+  // a windmill's per-farm bonus only counts the farms planted around that windmill
+  const farmsOf = id => plots().filter(f => f.built && f.type === 'farm' && f.needs === id).length;
+  for (const p of plots()) if (p.built && p.alive) inc += (p.s.income || 0) + (p.s.perHouse || 0) * houses + (p.s.perTower || 0) * towers + (p.s.perFarm || 0) * (p.type === 'mill' ? farmsOf(p.id) : farms);
   inc = Math.round(inc * M('incomeMul'));
   const interest = Math.min(10, Math.floor(G.gold * M('interest', 0)));
   const bounty = Math.floor(G.bounty); G.bounty -= bounty;
@@ -400,6 +402,7 @@ function endNight() {
   saveDay();
   say(queen(), pick(LINES.queenDawn));
   G.hintT = 3.5;
+  G.tut = { idx: -1, t: 0, nag: 0 };
 }
 
 // ---------- Combat helpers ----------
@@ -786,7 +789,7 @@ function updateLeader(dt) {
   if (L.dead) {
     L.dead -= dt;
     walk(L, mx * 10, my * 10, 60, dt);
-    if (L.dead <= 0) { L.dead = 0; L.hp = L.maxHp; L.x = CASTLE.x; L.y = CASTLE.y + 70; burst(L.x, L.y - 10, '#fff', 10); }
+    if (L.dead <= 0) { L.dead = 0; L.hp = L.maxHp; L.x = CASTLE.x; L.y = CASTLE.y + 95; burst(L.x, L.y - 10, '#fff', 10); }
     return;
   }
   if (L.dash) {
@@ -909,7 +912,10 @@ function updateUnit(u, dt) {
   // --- fighters
   let tg = null;
   const regroup = (u.role === 'squad' || (u.role === 'healer' && S.follow)) && L.running;
-  if (G.phase === 'night' && !(u.role === 'squad' && L.dead) && !regroup) tg = nearestEnemy(u.x, u.y, S.range ? S.range : 85, e => !e.burrowed && Math.hypot(e.x - center.x, e.y - center.y) < leash + (S.range || 0) && !(e.def.fly && !S.range));
+  // stationary defenders (hall knights/archers, garrison militia) spot robots from further away and chase them further from their post
+  const guard = u.role !== 'squad' && !(u.role === 'healer' && S.follow);
+  const aggro = guard ? (S.range ? S.range + 70 : 170) : (S.range || 85), chase = guard ? leash * 1.5 : leash;
+  if (G.phase === 'night' && !(u.role === 'squad' && L.dead) && !regroup) tg = nearestEnemy(u.x, u.y, aggro, e => !e.burrowed && Math.hypot(e.x - center.x, e.y - center.y) < chase + (S.range || 0) && !(e.def.fly && !S.range));
   if (tg) {
     const d = Math.hypot(tg.x - u.x, tg.y - u.y) - tg.r;
     let mul = 1;
@@ -994,6 +1000,63 @@ function updateChatter(dt) {
   }
 }
 
+// ---------- Early-game tutorial: the Queen suggests what to build (never required) ----------
+// Each day's steps are suggestions. A step is skipped once it's done or once nothing it suggests is affordable.
+// Ringing the bell always works; the tutorial just stops for that day.
+const HOUSE_IDS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8'];
+const builtCount = ids => ids.filter(id => G.plots[id] && G.plots[id].built).length;
+const TUTORIAL = [
+  // Day 1: no castle yet, so the only thing to do is fight
+  [{ bell: true, text: "Follow the arrow to the Night Bell when you're ready, Your Majesty. I'll be right here cheering!", tip: 'Stand on the Night Bell to start Night 1' }],
+  // Day 2: 10 gold (4 + 6 from Night 1). Castle 5 + Den 4 = 9
+  [{ ids: ['castle'], done: () => G.plots.castle.built, text: 'The robot scrap paid off! First, rebuild my castle: stand still on the glowing spot in the middle.', tip: 'Suggested: rebuild the Castle (5 gold)' },
+   { ids: ['den'], done: () => G.plots.den.built, text: 'Next, the Squad Den to the west. It gives you four kittens who follow you into battle!', tip: 'Suggested: build the Squad Den (4 gold)' },
+   { bell: true, text: "That's a fine start. Ring the bell whenever you're ready!", tip: 'Ring the Night Bell when ready' }],
+  // Day 3: about 7 gold. Tower 3 + two houses 2 + 2 = 7
+  [{ ids: ['tE1', 'tE2'], done: () => builtCount(['tE1', 'tE2']) >= 1, text: 'Blade and Laser Bots march up the east road tonight. A Cat Tower beside that road would shoot them down.', tip: 'Suggested: a Cat Tower on the east road (3 gold)' },
+   { ids: HOUSE_IDS, done: () => builtCount(HOUSE_IDS) >= 2, text: 'Now some Cat Houses. Each one pays a gold every morning, so they pay for themselves quickly.', tip: 'Suggested: two Cat Houses (2 gold each)' },
+   { bell: true, text: 'My castle archers can handle the scrap in the north-east woods. Ring the bell when ready!', tip: 'Ring the Night Bell when ready' }],
+  // Day 4: about 9 gold. Wall 3 + tower 3 + house 2 = 8
+  [{ ids: ['wS'], done: () => G.plots.wS.built, text: 'Roller Bots will race over the south bridge straight for my castle! A Wall across that road will hold them up.', tip: 'Suggested: wall off the south road (3 gold)' },
+   { ids: ['tS1', 'tS2'], done: () => builtCount(['tS1', 'tS2']) >= 1, text: 'And a tower by the south road can pick them off while they bash the wall.', tip: 'Suggested: a Cat Tower on the south road (3 gold)' },
+   { ids: HOUSE_IDS, done: () => builtCount(HOUSE_IDS) >= 3, text: 'Gold left over? One more house!', tip: 'Suggested: another Cat House (2 gold)' },
+   { bell: true, text: "The south is guarded. Ring the bell when you're ready!", tip: 'Ring the Night Bell when ready' }],
+  // Day 5: about 12 gold. Castle upgrade 8 + tower 3 = 11
+  [{ castleUp: true, done: () => castleTier() >= 2, text: 'Upgrade my castle! Castle level 2 unlocks new building spots, like the northern windmill fields.', tip: 'Suggested: upgrade the Castle (8 gold)' },
+   { ids: ['tC1', 'tB3'], done: () => builtCount(['tC1', 'tB3']) >= 1, text: 'Drones fly over the mountains to raid our houses. A tower near the houses will knock them out of the sky.', tip: 'Suggested: a tower near the houses for drones (3 gold)' },
+   { bell: true, text: 'From here on, the kingdom is yours to plan, Your Majesty. Good luck!', tip: 'Ring the Night Bell when ready' }],
+];
+// buildable targets of a step right now (bell / castle use their own spot)
+function tutTargets(st) {
+  if (st.bell) return [{ x: BELL.x, y: BELL.y, off: 50 }];
+  if (st.castleUp) return [{ x: CASTLE.x, y: CASTLE.y, off: 128 }];
+  const out = [];
+  for (const id of st.ids) {
+    const p = G.plots[id];
+    if (!p || p.built || !plotVisible(p) || !plotUnlocked(p)) continue;
+    const c = p.type === 'wall' ? wallMid(p) : p;
+    out.push({ x: c.x, y: c.y, off: p.type === 'tower' ? 66 : p.type === 'castle' ? 46 : p.type === 'wall' ? 30 : 52, plot: p });
+  }
+  return out;
+}
+function tutAffordable(st) {
+  if (st.bell) return true;
+  if (st.castleUp) { const c = castleNextCost(); return c != null && G.gold >= c; }
+  return tutTargets(st).some(t => G.gold >= cost(t.plot, 0));
+}
+function tutStep() { const T = TUTORIAL[G.night]; return T && G.phase === 'day' && G.tut.idx >= 0 ? T[G.tut.idx] : null; }
+function updateTutorial(dt) {
+  const T = TUTORIAL[G.night], tu = G.tut;
+  if (!T || G.phase !== 'day') return;
+  tu.t += dt;
+  if (tu.t < (G.night === 0 ? 22 : 5)) return;   // let the Queen's opening lines finish first
+  let i = 0;
+  while (i < T.length - 1 && ((T[i].done && T[i].done()) || !tutAffordable(T[i]) || (!T[i].bell && !T[i].castleUp && !tutTargets(T[i]).length))) i++;
+  if (i !== tu.idx) { tu.idx = i; tu.nag = 0; say(queen(), T[i].text, 7); }
+  tu.nag += dt;
+  if (tu.nag > 30) { tu.nag = 0; say(queen(), T[i].text, 6); }
+}
+
 // ---------- Camera ----------
 function updateCamera(dt) {
   const L = G.leader;
@@ -1018,7 +1081,7 @@ function update(dt) {
   for (const d of G.decoys) d.t -= dt;
   G.decoys = G.decoys.filter(d => d.t > 0 && d.hp > 0);
   updateChatter(dt);
-  if (G.phase === 'day') { updatePads(dt); return; }
+  if (G.phase === 'day') { updatePads(dt); updateTutorial(dt); return; }
   G.pads = []; G.hold.key = null; G.panel = null; G.lanePanel = null;
   G.nightT += dt;
   while (G.spawns.length && G.spawns[0].at <= G.nightT) spawnEnemy(G.spawns.shift());
