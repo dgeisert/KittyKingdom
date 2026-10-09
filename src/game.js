@@ -25,12 +25,23 @@ function startMusic() {   // browsers only allow audio after the first key press
   } catch (e) { }
 }
 function setMuted(m) { muted = m; if (music) music.muted = m; }
+function tone(wave, f1, f2, dur, vol, delay) {
+  const t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = wave; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.start(t); o.stop(t + dur + 0.02);
+}
 function sfx(type) {
   if (muted) return;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
-    o.connect(g); g.connect(AC.destination);
+    if (type === 'construct') {   // construction starts: a low "thunk" and a rising four-note fanfare
+      tone('sine', 150, 70, 0.25, 0.14, 0);
+      [392, 523, 659, 784].forEach((f, i) => tone('triangle', f, f * 1.02, 0.16, 0.09, 0.05 + i * 0.075));
+      tone('triangle', 1046, 1046, 0.3, 0.06, 0.35);
+      return;
+    }
     const S = {
       coin: ['square', 988, 1319, 0.08, 0.04], build: ['triangle', 523, 1046, 0.25, 0.09], upgrade: ['triangle', 392, 1175, 0.4, 0.1],
       bell: ['sine', 880, 440, 1.4, 0.18], hit: ['square', 180, 90, 0.06, 0.025], boom: ['sawtooth', 120, 30, 0.35, 0.1],
@@ -38,9 +49,7 @@ function sfx(type) {
       dash: ['sawtooth', 300, 900, 0.15, 0.05], zap: ['square', 1400, 500, 0.08, 0.03],
     }[type];
     if (!S) return;
-    o.type = S[0]; o.frequency.setValueAtTime(S[1], t); o.frequency.exponentialRampToValueAtTime(S[2], t + S[3]);
-    g.gain.setValueAtTime(S[4], t); g.gain.exponentialRampToValueAtTime(0.0001, t + S[3]);
-    o.start(t); o.stop(t + S[3] + 0.02);
+    tone(S[0], S[1], S[2], S[3], S[4], 0);
   } catch (e) { }
 }
 
@@ -280,6 +289,18 @@ function computePads() {
   pads.push({ key: 'bell', x: BELL.x, y: BELL.y + 8, cost: 0, label: 'Ring the Night Bell', desc: 'Start night ' + (G.night + 1) + ': ' + NIGHTS[G.night].name, icon: 'bell', hold: 1.0, act: startNight });
   return pads;
 }
+const CONSTRUCT_DELAY = 0.5;   // seconds between "construction started" and the first coin
+function padNeed(pd) { return pd.hold || (pd.key.endsWith(':build') ? HOLD_BUILD : HOLD_UPGRADE); }
+// construction progress 0..1 for the point being built (0 during the start-up pause)
+function constructProgress() { const pd = G.constructPad, H = G.hold; if (!pd) return 0; return H.done ? 1 : H.delay > 0 ? 0 : clamp(H.p / padNeed(pd), 0, 1); }
+// attack (or aura) range a building would have with this upgrade path
+function rangeFor(p, path) {
+  if (treeNodes(p.type, path).some(n => !n)) return 0;   // not a valid path for this building
+  const s = finalize(nodeStats(p.type, path), ['unit']);
+  if (s.dmg && s.range) return s.range * (p.type === 'tower' ? M('towerRangeMul') : 1);
+  if (p.type === 'farm' && M('farmScarecrow', 0)) return 115;
+  return s.auraR || s.windR || 0;
+}
 const SPAWN_ANCHORS = { E: [1380, 490], NE: [1290, 150], S: [905, 930], SEA: [150, 880], AIRN: [680, 120], AIRW: [130, 420] };
 function laneGroups(lane) {
   const N = NIGHTS[G.night]; if (!N) return [];
@@ -301,18 +322,33 @@ function updatePads(dt) {
   if (G.resetPanel) { G.panel = null; G.lanePanel = null; }
   G.pads = computePads();
   const L = G.leader;
-  let on = null;
-  if (!L.dead) for (const pd of G.pads) if (Math.hypot(pd.x - L.x, pd.y - L.y) < PAD_R + (pd.big ? 8 : 5)) { on = pd; break; }
+  // "on" = standing on a point (buys it); "viewed" = the nearest point within reach (highlighted, shows ranges)
+  let on = null, view = null, vd = 36;
+  if (!L.dead) for (const pd of G.pads) {
+    const d = Math.hypot(pd.x - L.x, pd.y - L.y);
+    if (!on && d < PAD_R + (pd.big ? 8 : 5)) on = pd;
+    if (d < vd) { vd = d; view = pd; }
+  }
+  G.viewPad = on || view; G.constructPad = null;
   const H = G.hold;
-  if (!on) { H.key = null; H.p = 0; H.done = false; return; }
-  if (H.key !== on.key) { H.key = on.key; H.p = 0; H.done = false; }
-  if (H.done || on.locked) return;
-  if (G.gold < on.cost) { H.p = 0; return; }
-  const need = on.hold || (on.key.endsWith(':build') ? HOLD_BUILD : HOLD_UPGRADE);
+  // after a purchase the King must step off every point before the next one can start (no accidental chain-buys)
+  if (!on) { H.key = null; H.p = 0; H.done = false; H.started = false; H.delay = 0; H.wait = false; return; }
+  if (H.key !== on.key) { H.key = on.key; H.p = 0; H.done = false; H.started = false; H.delay = 0; }
+  if (H.wait && H.wait !== on.plot) H.wait = false;   // a different building's point is fine
+  if (H.done || on.locked || H.wait) return;
+  if (G.gold < on.cost) { H.p = 0; H.started = false; H.delay = 0; return; }
+  // construction starts: chime, then a short pause before the coins begin to fly
+  if (!H.started) {
+    H.started = true; H.startT = G.t;
+    if (on.plot) { H.delay = CONSTRUCT_DELAY; sfx('construct'); G.fx.push({ type: 'ring', x: on.x, y: on.y, t: 0, dur: 0.5, r: 34, col: '#ffd34d' }); }
+  }
+  if (on.plot) G.constructPad = on;
+  if (H.delay > 0) { H.delay -= dt; return; }
+  const need = padNeed(on);
   const before = H.p; H.p += dt;
   const f0 = Math.floor(before / need * on.cost), f1 = Math.floor(H.p / need * on.cost);
   for (let i = f0; i < Math.min(f1, on.cost); i++) { G.fx.push({ type: 'coinfly', x: L.x, y: L.y - 22, tx: on.x, ty: on.y, t: 0, dur: 0.35 }); sfx('coin'); }
-  if (H.p >= need) { H.done = true; H.p = 0; if (G.gold >= on.cost) { G.gold -= on.cost; on.act(); } else sfx('bad'); }
+  if (H.p >= need) { H.done = true; H.p = 0; if (on.plot) H.wait = on.plot; if (G.gold >= on.cost) { G.gold -= on.cost; on.act(); } else sfx('bad'); }
 }
 
 // ---------- Daily save (taken at the start of every day) ----------

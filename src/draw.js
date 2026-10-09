@@ -7,6 +7,24 @@ const DARK = document.createElement('canvas'); DARK.width = W / 2; DARK.height =
 const dctx = DARK.getContext('2d');
 const PANEL_W = 262;
 
+// '#rrggbb' -> rgba() with the given alpha
+function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+// the building whose point the King is standing on and paying into right now (day only)
+function constructing(p) { const c = G.phase === 'day' && G.constructPad; return c && c.plot === p ? c : null; }
+// grow + golden tint while under construction; returns true if the transform was applied (caller restores)
+function constructLook(p, cx, cy) {
+  if (!constructing(p)) return false;
+  const k = clamp((G.t - (G.hold.startT || 0)) / 0.25, 0, 1), e = 1 - (1 - k) * (1 - k);
+  const sc = 1 + 0.14 * e + 0.025 * Math.sin(G.t * 9);
+  // pulsing gold glow on the ground (visible even where canvas filters are unsupported)
+  ctx.save(); ctx.lineWidth = 2.5;
+  const gr = (p.r || 18) + 16 + Math.sin(G.t * 9) * 3;
+  ell(ctx, cx, cy, gr, gr * 0.5, 'rgba(255,211,77,' + (0.18 + 0.1 * Math.sin(G.t * 9)) + ')', 'rgba(255,211,77,0.9)');
+  ctx.restore();
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(sc, sc); ctx.translate(-cx, -cy);
+  ctx.filter = 'sepia(0.55) saturate(2.2) hue-rotate(-12deg) brightness(1.18)';
+  return true;
+}
 function sprChain(keys, x, y, size, o) { for (const k of keys) if (SPR[k]) return spr(ctx, k, x, y, size, o); return false; }
 
 // ---------- cats ----------
@@ -77,6 +95,7 @@ function drawBuilding(p) {
   const k = pathKey(p), b = p.path[0] || '';
   const keys = ['b_' + p.type + '_' + k, 'b_' + p.type + '_' + b, 'b_' + p.type];
   const size = (SPRITES['b_' + p.type] || {}).size || 50;
+  const bc = p.type === 'wall' ? wallMid(p) : p, grown = constructLook(p, bc.x, bc.y);
   ctx.save();
   if (p.hurtT > 0) { p.hurtT -= 1 / 60; ctx.filter = 'brightness(1.6)'; }
   if (p.type === 'wall') drawWall(ctx, p);
@@ -92,6 +111,7 @@ function drawBuilding(p) {
     }
   } else if (!sprChain(keys, p.x, p.y + 6, size)) BUILDING_DRAW[p.type](ctx, p.x, p.y, p, t);
   ctx.restore();
+  if (grown) ctx.restore();
   // garrison / gate cats etc are units; badge shows chosen path
   if (G.phase === 'day' && upgradeOptions(p).length && lockReason(p) && Math.hypot(p.x - G.leader.x, p.y - G.leader.y) < 260) {
     const ly = (p.type === 'wall' ? wallMid(p).y : p.y) - (p.type === 'tower' ? towerHeight(p) + 40 : p.type === 'castle' ? 120 : 52);
@@ -113,13 +133,15 @@ function drawPlotGhost(p) {
   const locked = !plotUnlocked(p);
   const near = Math.hypot(p.x - G.leader.x, p.y - G.leader.y) < 110;
   const c = p.type === 'wall' ? wallMid(p) : p;
-  ctx.save(); ctx.globalAlpha = locked ? (near ? 0.3 : 0.16) : (near ? 0.42 : 0.22);
+  const grown = constructLook(p, c.x, c.y);
+  ctx.save(); ctx.globalAlpha = locked ? (near ? 0.3 : 0.16) : grown ? 0.55 + 0.4 * constructProgress() : (near ? 0.42 : 0.22);
   const fake = { ...p, path: [], aimFlip: false };
   if (p.type === 'castle') { for (let i = 0; i < 9; i++) ell(ctx, p.x + Math.cos(i * 1.9) * 26, p.y - 4 + Math.sin(i * 1.3) * 10, 8, 5, i % 2 ? '#a89c88' : '#857a68'); ctx.globalAlpha = 1; }
   else if (p.type === 'wall') { ctx.setLineDash([5, 5]); line(ctx, p.x1, p.y1, p.x2, p.y2, '#fff', 3); ctx.setLineDash([]); }
   else if (p.type === 'tower') drawTowerBody(ctx, p.x, p.y, fake);
   else BUILDING_DRAW[p.type](ctx, p.x, p.y, fake, 0);
   ctx.restore();
+  if (grown) ctx.restore();
   if (locked) {
     ctx.save(); ctx.globalAlpha = near ? 1 : 0.75;
     ell(ctx, c.x, c.y, PAD_R + 2, (PAD_R + 2) * 0.55, 'rgba(40,40,60,0.25)', 'rgba(200,205,220,0.6)');
@@ -178,25 +200,67 @@ function drawPad(pd) {
   const L = G.leader, H = G.hold, active = H.key === pd.key;
   const dist = Math.hypot(pd.x - L.x, pd.y - L.y);
   const afford = G.gold >= pd.cost && !pd.locked;
-  const pulse = 1 + Math.sin(G.t * 4 + pd.x) * 0.06;
+  const building = G.constructPad && G.constructPad.key === pd.key;
+  const viewed = !building && G.viewPad && G.viewPad.key === pd.key;
+  const base = pd.col || (afford ? '#fff3b8' : '#ffb0a0');
+  const pulse = building ? 1.3 + Math.sin(G.t * 10) * 0.08 : viewed ? 1.12 + Math.sin(G.t * 7) * 0.1 : 1 + Math.sin(G.t * 4 + pd.x) * 0.06;
   const r = (pd.big ? PAD_R + 4 : PAD_R) * pulse;
   ctx.save();
-  // thin ring outline
-  ctx.lineWidth = 2.2;
-  ell(ctx, pd.x, pd.y, r, r * 0.55, afford ? 'rgba(255,240,170,0.18)' : 'rgba(255,140,120,0.14)', pd.col || (afford ? '#fff3b8' : '#ffb0a0'));
+  if (building) {
+    // under construction: solid gold disc with a glow
+    ctx.shadowColor = 'rgba(255,211,77,0.9)'; ctx.shadowBlur = 14; ctx.lineWidth = 3;
+    ell(ctx, pd.x, pd.y, r, r * 0.55, 'rgba(255,211,77,0.55)', '#fff6c8');
+    ctx.shadowBlur = 0;
+  } else if (viewed) {
+    // selected for viewing: switches to a bright white ring filled with its colour, pulsing
+    ctx.lineWidth = 3;
+    ell(ctx, pd.x, pd.y, r + 5, (r + 5) * 0.55, null, hexA(pd.col || '#ffe45c', 0.45 + 0.25 * Math.sin(G.t * 7)));
+    ell(ctx, pd.x, pd.y, r, r * 0.55, hexA(pd.col || (afford ? '#7fe0ff' : '#ff8a7a'), 0.5), '#ffffff');
+  } else {
+    // thin ring outline
+    ctx.lineWidth = 2.2;
+    ell(ctx, pd.x, pd.y, r, r * 0.55, afford ? 'rgba(255,240,170,0.18)' : 'rgba(255,140,120,0.14)', base);
+  }
   if (active) {
-    const need = pd.hold || (pd.key.endsWith(':build') ? HOLD_BUILD : HOLD_UPGRADE);
-    const k = H.done ? 1 : H.p / need;
+    const k = H.done ? 1 : H.delay > 0 ? 0 : H.p / padNeed(pd);
     ctx.beginPath(); ctx.ellipse(pd.x, pd.y, r + 4, (r + 4) * 0.55, 0, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2);
-    ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.strokeStyle = building ? '#ff9a1a' : '#ffd34d'; ctx.lineWidth = building ? 3.5 : 2.5; ctx.stroke();
   }
   ctx.lineWidth = 1;
   if (pd.idx != null) {
-    ell(ctx, pd.x, pd.y - 15, 8, 8, pd.col, '#fff');
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(String(pd.idx + 1), pd.x, pd.y - 11);
+    const s = building || viewed ? 1.25 : 1, by = pd.y - 15 - (building || viewed ? 4 : 0);
+    ell(ctx, pd.x, by, 8 * s, 8 * s, building ? '#ffd34d' : pd.col, '#fff');
+    ctx.fillStyle = building ? '#5a3a00' : '#fff'; ctx.font = 'bold ' + Math.round(11 * s) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(String(pd.idx + 1), pd.x, by + 4 * s);
   }
   if (pd.cost > 0 && (pd.big ? dist < 170 : dist < 70)) costCoins(pd.x, pd.y + (pd.idx != null ? 12 : -r - 8), pd.cost);
   ctx.restore();
+}
+// range rings for the building whose point is viewed: white = now (or base when building), colours = upgrades
+function rangeRing(x, y, r, col, o) {
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  if (o.fill) { ctx.fillStyle = hexA(col, o.fill); ctx.fill(); }
+  ctx.setLineDash(o.dash || []); ctx.lineDashOffset = o.march ? -G.t * 24 : 0;
+  ctx.lineWidth = o.w || 2; ctx.strokeStyle = hexA(col, o.a == null ? 0.9 : o.a); ctx.stroke();
+  if (o.label) {
+    const a = o.ang, lx = x + Math.cos(a) * r, ly = y + Math.sin(a) * r;
+    ctx.setLineDash([]); ctx.font = 'bold 10px "Trebuchet MS", sans-serif'; ctx.textAlign = 'center';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(20,20,40,0.75)'; ctx.strokeText(o.label, lx, ly + 3);
+    ctx.fillStyle = col; ctx.fillText(o.label, lx, ly + 3); ctx.textAlign = 'left';
+  }
+  ctx.restore();
+}
+function drawRanges() {
+  const pd = G.viewPad; if (!pd || !pd.plot || G.phase !== 'day') return;
+  const p = pd.plot, ups = [];
+  // the pad list can be one frame stale right after a purchase (old choices, new path): only use current choices
+  const live = p.built ? upgradeOptions(p) : [];
+  if (p.built) for (const q of G.pads) if (q.plot === p && q.node && !q.node.research && live.includes(q.node)) { const r = rangeFor(p, p.path.concat(q.node.id)); if (r) ups.push({ r, col: q.col, active: q.key === pd.key, name: q.node.name }); }
+  const now = rangeFor(p, p.built ? p.path : []);
+  if (!now && !ups.length) return;
+  for (const u of ups) if (!u.active) rangeRing(p.x, p.y, u.r, u.col, { dash: [6, 6], a: 0.5, w: 1.5 });
+  if (now) rangeRing(p.x, p.y, now, '#ffffff', { fill: 0.07, w: 3, a: 0.85, label: (p.built ? 'Now ' : 'Range ') + Math.round(now), ang: -Math.PI * 0.62 });
+  for (const u of ups) if (u.active) rangeRing(p.x, p.y, u.r, u.col, { fill: 0.1, dash: [10, 6], march: true, w: 2.5, label: u.name + ' ' + Math.round(u.r), ang: -Math.PI * 0.38 });
 }
 function drawEnemy(e) {
   const d = e.def;
@@ -357,27 +421,45 @@ function drawPanel() {
   let cards = [];
   if (!p.built) cards = [{ name: 'Build ' + T.name, desc: T.blurb, num: null, col: '#ffe9a8', cost: cost(p, 0), key: p.id + ':build' }];
   else cards = opts.map((o, i) => { const slot = opts.length === 2 ? i * 2 : i; return { name: o.name, desc: o.desc, num: i + 1, col: OPT_COL[slot], cost: cost(p, p.path.length + 1), key: p.id + ':' + o.id }; });
-  for (const c of cards) { c.d = wrapText(c.desc, w - 54); c.h = 26 + c.d.length * 13; }
+  const con = constructing(p), prog = constructProgress();
+  for (const c of cards) { c.d = wrapText(c.desc, w - 54); c.h = 26 + c.d.length * 13; c.con = con && con.key === c.key; c.view = !c.con && G.viewPad && G.viewPad.key === c.key; if (c.con) c.h += 16; }
   const sub = !p.built ? 'Empty building spot' : 'Level ' + lvl + (nodes.length ? ' · ' + nodes.map(n => n.name).join(' › ') : '');
   const subLines = wrapText(sub, w - 24).slice(0, 2);
-  const note = !p.built ? (G.gold < cost(p, 0) ? (p.type === 'castle' && G.night === 0 ? 'Survive tonight: robot scrap pays for it' : 'Not enough gold yet (' + G.gold + '/' + cost(p, 0) + ')') : 'Stand on the glowing spot to build') : lock ? lock : opts.length ? (opts[0].research ? 'Repeatable research · ' : opts.length === 2 ? 'Final upgrade · ' : 'Upgrade to level ' + (lvl + 1) + ' · ') + 'stand on a numbered point' : '★ Fully upgraded';
+  let note = !p.built ? (G.gold < cost(p, 0) ? (p.type === 'castle' && G.night === 0 ? 'Survive tonight: robot scrap pays for it' : 'Not enough gold yet (' + G.gold + '/' + cost(p, 0) + ')') : 'Stand on the glowing spot to build') : lock ? lock : opts.length ? (opts[0].research ? 'Repeatable research · ' : opts.length === 2 ? 'Final upgrade · ' : 'Upgrade to level ' + (lvl + 1) + ' · ') + 'stand on a numbered point' : '★ Fully upgraded';
   const curDesc = p.built && (lock || !opts.length) ? wrapText(nodes.length ? nodes[nodes.length - 1].desc : T.blurb, w - 24) : [];
+  if (con) note = (p.built ? '🔨 Upgrade under construction!' : '🔨 Construction started!') + (prog > 0 ? ' ' + Math.round(prog * 100) + '%' : '');
   let hTot = 30 + subLines.length * 12 + 22 + curDesc.length * 13 + cards.reduce((a, c) => a + c.h + 6, 0) + 6;
   G.panelRect = { x, y, w, h: hTot };
   ctx.save();
-  rrect(ctx, x, y, w, hTot, 12, 'rgba(22,26,46,0.88)', 'rgba(255,233,168,0.5)');
+  const first = con && !p.built, wob = Math.sin(G.t * 9);
+  if (first) {   // first construction: the whole dialogue pulses gold
+    const cxp = x + w / 2, cyp = y + hTot / 2, sc = 1 + 0.03 * wob;
+    ctx.translate(cxp, cyp); ctx.scale(sc, sc); ctx.translate(-cxp, -cyp);
+    ctx.shadowColor = 'rgba(255,200,60,0.9)'; ctx.shadowBlur = 16 + 8 * wob; ctx.lineWidth = 3;
+    rrect(ctx, x, y, w, hTot, 12, 'rgba(58,44,14,0.94)', '#ffd34d');
+    ctx.shadowBlur = 0; ctx.lineWidth = 1;
+  } else rrect(ctx, x, y, w, hTot, 12, 'rgba(22,26,46,0.88)', con ? '#ffd34d' : 'rgba(255,233,168,0.5)');
   ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 15px "Trebuchet MS", sans-serif'; ctx.fillText(T.name, x + 12, y + 22);
   ctx.font = '11px "Trebuchet MS", sans-serif'; ctx.fillStyle = '#b8c4e0';
   subLines.forEach((l, i) => ctx.fillText(l, x + 12, y + 38 + i * 12));
   let cy = y + 30 + subLines.length * 12 + 8;
-  ctx.fillStyle = lock ? '#ffb0a0' : (p.built && !opts.length) ? '#9fe39a' : '#cfe0ff';
-  ctx.font = (p.built && !opts.length ? 'bold 12px' : '11px') + ' "Trebuchet MS", sans-serif';
+  ctx.fillStyle = con ? 'rgba(255,' + Math.round(200 + 40 * wob) + ',90,1)' : lock ? '#ffb0a0' : (p.built && !opts.length) ? '#9fe39a' : '#cfe0ff';
+  ctx.font = (con || (p.built && !opts.length) ? 'bold 12px' : '11px') + ' "Trebuchet MS", sans-serif';
   ctx.fillText((lock ? '🔒 ' : '') + note, x + 12, cy + 4); cy += 14;
   ctx.fillStyle = '#dfe6f6'; ctx.font = '11px "Trebuchet MS", sans-serif';
   curDesc.forEach((l, i) => ctx.fillText(l, x + 12, cy + 4 + i * 13)); cy += curDesc.length * 13 + (curDesc.length ? 4 : 0);
   for (const c of cards) {
-    const onIt = G.hold.key === c.key, afford = G.gold >= c.cost;
-    rrect(ctx, x + 8, cy, w - 16, c.h, 8, onIt ? 'rgba(255,233,168,0.18)' : 'rgba(255,255,255,0.06)', onIt ? '#ffe9a8' : null);
+    const afford = G.gold >= c.cost;
+    ctx.save();
+    if (c.con && !first) {   // the chosen upgrade: filled with its colour, glowing and pulsing
+      const cxc = x + w / 2, cyc = cy + c.h / 2, sc = 1 + 0.035 * wob;
+      ctx.translate(cxc, cyc); ctx.scale(sc, sc); ctx.translate(-cxc, -cyc);
+      ctx.shadowColor = c.col; ctx.shadowBlur = 14 + 6 * wob; ctx.lineWidth = 2.5;
+      rrect(ctx, x + 8, cy, w - 16, c.h, 8, hexA(c.col, 0.38 + 0.12 * wob), '#fff');
+      ctx.shadowBlur = 0; ctx.lineWidth = 1;
+    } else if (c.con) rrect(ctx, x + 8, cy, w - 16, c.h, 8, 'rgba(255,211,77,0.22)', '#ffd34d');
+    else if (c.view) { ctx.lineWidth = 2; rrect(ctx, x + 8, cy, w - 16, c.h, 8, hexA(c.col.length === 7 ? c.col : '#ffe9a8', 0.2), '#fff'); ctx.lineWidth = 1; }
+    else rrect(ctx, x + 8, cy, w - 16, c.h, 8, 'rgba(255,255,255,0.06)', null);
     rrect(ctx, x + 8, cy, 5, c.h, 2, c.col);
     let tx = x + 18;
     if (c.num) { ell(ctx, x + 26, cy + 13, 8, 8, c.col, '#fff'); ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(String(c.num), x + 26, cy + 17); ctx.textAlign = 'left'; tx = x + 40; }
@@ -385,6 +467,13 @@ function drawPanel() {
     ctx.textAlign = 'right'; ctx.fillStyle = afford ? '#ffe45c' : '#ffb0a0'; ctx.fillText(c.cost + 'g', x + w - 16, cy + 17); ctx.textAlign = 'left';
     ctx.font = '11px "Trebuchet MS", sans-serif'; ctx.fillStyle = '#dfe6f6';
     c.d.forEach((l, i) => ctx.fillText(l, tx, cy + 31 + i * 13));
+    if (c.con) {   // construction progress bar
+      const by = cy + c.h - 4, bw = w - 16 - (tx - x) - 8;
+      ctx.fillStyle = '#ffe45c'; ctx.font = 'bold 9px "Trebuchet MS", sans-serif'; ctx.fillText(prog > 0 ? 'BUILDING...' : 'STARTING...', tx, by - 1);
+      rrect(ctx, tx + 62, by - 9, bw - 62, 8, 4, 'rgba(0,0,0,0.45)');
+      if (prog > 0) rrect(ctx, tx + 62, by - 9, (bw - 62) * prog, 8, 4, '#ffd34d');
+    }
+    ctx.restore();
     cy += c.h + 6;
   }
   ctx.restore();
@@ -516,15 +605,17 @@ function drawHelpButton() {
 function toggleHelp(on) { G.help = on == null ? !G.help : on; for (const k in keys) keys[k] = false; }
 
 function drawHUD() {
-  rrect(ctx, 8, 8, 312, 34, 10, 'rgba(25,30,50,0.75)');
+  ctx.font = 'bold 18px "Trebuchet MS", sans-serif';
+  const gTxt = G.gold + 'g', gx = Math.max(0, 42 + ctx.measureText(gTxt).width + 12 - 92);   // shift the rest right for big totals
+  rrect(ctx, 8, 8, 312 + gx, 34, 10, 'rgba(25,30,50,0.75)');
   coin(28, 25, 9);
-  ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 18px "Trebuchet MS", sans-serif'; ctx.fillText(G.gold, 42, 31);
+  ctx.fillStyle = '#ffe9a8'; ctx.fillText(gTxt, 42, 31);
   ctx.fillStyle = '#fff'; ctx.font = 'bold 13px "Trebuchet MS", sans-serif';
   const nn = Math.min(G.night + 1, NIGHTS.length);
-  ctx.fillText((G.phase === 'night' ? '🌙 Night ' : '☀ Day ') + nn + ' / ' + NIGHTS.length, 92, 30);
+  ctx.fillText((G.phase === 'night' ? '🌙 Night ' : '☀ Day ') + nn + ' / ' + NIGHTS.length, 92 + gx, 30);
   ctx.fillStyle = '#b8c4e0'; ctx.font = '11px "Trebuchet MS", sans-serif';
-  if (G.phase === 'night') ctx.fillText('Robots left: ' + (G.enemies.length + G.spawns.length), 210, 30);
-  else ctx.fillText('Castle Lv' + castleTier(), 214, 30);
+  if (G.phase === 'night') ctx.fillText('Robots left: ' + (G.enemies.length + G.spawns.length), 210 + gx, 30);
+  else ctx.fillText('Castle Lv' + castleTier(), 214 + gx, 30);
   const L = G.leader;
   ctx.save(); ctx.translate(-(HELP_BTN.w + 6), 0);   // King box sits left of the help button
   rrect(ctx, W - 230, 8, 222, 34, 10, 'rgba(25,30,50,0.75)');
@@ -540,7 +631,7 @@ function drawHUD() {
   if (G.phase === 'day') {
     const near = G.pads.filter(p => Math.hypot(p.x - L.x, p.y - L.y) < 36).sort((a, b) => Math.hypot(a.x - L.x, a.y - L.y) - Math.hypot(b.x - L.x, b.y - L.y))[0];
     if (near) {
-      const txt = (near.idx != null ? (near.idx + 1) + '. ' : '') + near.label + (near.cost ? '  (' + near.cost + ' gold)' : ''), sub = near.locked || (G.gold < near.cost ? 'Not enough gold' : 'Stand still to activate');
+      const txt = (near.idx != null ? (near.idx + 1) + '. ' : '') + near.label + (near.cost ? '  (' + near.cost + ' gold)' : ''), sub = near.locked || (G.hold.wait && G.hold.key === near.key ? 'Step off the point, then back on to buy' : G.gold < near.cost ? 'Not enough gold' : G.constructPad === near ? (G.hold.delay > 0 ? 'Construction started!' : 'Building... ' + Math.round(constructProgress() * 100) + '%') : 'Stand still to activate');
       ctx.font = 'bold 13px "Trebuchet MS", sans-serif'; const w1 = ctx.measureText(txt).width; ctx.font = '11px "Trebuchet MS", sans-serif'; const w = Math.max(w1, ctx.measureText(sub).width) + 24;
       rrect(ctx, W / 2 - w / 2, H - 52, w, 42, 10, 'rgba(25,30,50,0.85)');
       ctx.textAlign = 'center'; ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 13px "Trebuchet MS", sans-serif'; ctx.fillText(txt, W / 2, H - 34);
@@ -560,8 +651,8 @@ function drawHUD() {
     ctx.save(); ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.font = 'bold 28px "Trebuchet MS", sans-serif';
     ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(20,20,40,0.8)'; ctx.strokeText(G.msg.text, W / 2, 110); ctx.fillStyle = '#fff2c4'; ctx.fillText(G.msg.text, W / 2, 110); ctx.restore();
   }
-  if (G.speed > 1) { ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 12px sans-serif'; ctx.fillText('>> x' + G.speed, 330, 30); }
-  if (muted) { ctx.fillStyle = '#aaa'; ctx.font = '10px sans-serif'; ctx.fillText('muted (M)', 330, 44); }
+  if (G.speed > 1) { ctx.fillStyle = '#ffe9a8'; ctx.font = 'bold 12px sans-serif'; ctx.fillText('>> x' + G.speed, 330 + gx, 30); }
+  if (muted) { ctx.fillStyle = '#aaa'; ctx.font = '10px sans-serif'; ctx.fillText('muted (M)', 330 + gx, 44); }
   const boss = G.enemies.find(e => e.def.boss);
   if (boss) {
     rrect(ctx, W / 2 - 200, 52, 400, 22, 8, 'rgba(25,10,40,0.8)');
@@ -586,6 +677,7 @@ function render() {
   const onScreen = (x, y, m) => x > cx - m && x < cx + W + m && y > cy - m && y < cy + H + m;
   if (G.phase !== 'night' || !G.plots.castle.built) for (const p of plots()) if (!p.built && plotVisible(p) && onScreen(p.x, p.y, 80) && (G.phase !== 'night' || p.type === 'castle')) drawPlotGhost(p);
   for (const pl of G.pools) { ctx.globalAlpha = 0.55 * (1 - pl.t / pl.dur); ell(ctx, pl.x, pl.y, pl.r, pl.r * 0.5, pl.slow && !pl.dps ? '#9cf' : '#ff7a2a'); ell(ctx, pl.x, pl.y, pl.r * 0.6, pl.r * 0.3, pl.slow ? '#e6f4ff' : '#ffd34d'); ctx.globalAlpha = 1; }
+  drawRanges();
   if (G.phase === 'day') for (const pd of G.pads) if (onScreen(pd.x, pd.y, 40)) drawPad(pd);
   drawBell(ctx, BELL.x, BELL.y, G.t, G.hold.key === 'bell');
   const list = [];
